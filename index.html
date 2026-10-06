@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Axoli Client</title>
+<meta name="description" content="Axoli Client is a Minecraft: Java Edition PvP client (a Fabric mod) with its own desktop launcher. This page explains what it is, how Microsoft sign-in works, what is stored and how to get in touch.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d6337a'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='700' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #faf7fb; --surface: #ffffff; --text: #1d1a22; --muted: #5d5766; --line: #e7e1ec;
+    --accent: #d6337a; --accent-soft: #fbe6f0; --code: #f3eff6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141118; --surface: #1d1922; --text: #f1edf5; --muted: #a79fb2; --line: #2e2836;
+      --accent: #ff6aa8; --accent-soft: #3a1d2c; --code: #26212c;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+  header { border-bottom: 1px solid var(--line); background: var(--surface); }
+  header .wrap { display: flex; align-items: center; gap: 14px; padding-top: 14px; padding-bottom: 14px; flex-wrap: wrap; }
+  header img { width: 40px; height: 40px; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
+  header strong { font-size: 1.15rem; }
+  nav { margin-left: auto; display: flex; gap: 16px; flex-wrap: wrap; font-size: .95rem; }
+  nav a { color: var(--muted); text-decoration: none; }
+  nav a:hover { color: var(--accent); }
+  .hero { padding: 56px 0 32px; }
+  .hero h1 { font-size: clamp(2rem, 6vw, 2.9rem); line-height: 1.15; margin: 0 0 14px; letter-spacing: -.02em; }
+  .hero p { font-size: 1.15rem; color: var(--muted); margin: 0; max-width: 640px; }
+  .tag { display: inline-block; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: .82rem;
+         padding: 3px 10px; border-radius: 999px; margin-bottom: 16px; }
+  section { padding: 28px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 1.45rem; margin: 0 0 12px; letter-spacing: -.01em; }
+  h3 { font-size: 1.05rem; margin: 22px 0 6px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .card h3 { margin-top: 0; }
+  .card p { margin: 0; color: var(--muted); font-size: .96rem; }
+  ol.flow { padding-left: 1.3em; }
+  ol.flow li { margin-bottom: 8px; }
+  code { background: var(--code); padding: 1px 6px; border-radius: 5px; font-size: .9em; word-break: break-word; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .95rem; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  .note { background: var(--accent-soft); border-radius: 10px; padding: 12px 16px; margin-top: 16px; }
+  footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d6337a'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='700' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" alt="Axoli logo">
+    <strong>Axoli Client</strong>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#launcher">Launcher</a>
+      <a href="#sign-in">Sign-in</a>
+      <a href="#data">Data &amp; privacy</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <span class="tag">Minecraft: Java Edition</span>
+    <h1>A PvP client and launcher for Minecraft: Java Edition</h1>
+    <p>Axoli Client is a Fabric mod with a performance and PvP focus, in the style of Lunar Client and Feather. The Axoli Launcher installs and starts it for players who own Minecraft: Java Edition.</p>
+  </div>
+
+  <section id="about">
+    <h2>What Axoli Client is</h2>
+    <p>Axoli Client is a mod for the Fabric loader on Minecraft: Java Edition 1.21.11. It adds a configurable HUD, PvP quality-of-life features, themes and cosmetics. It runs on top of the normal, unmodified game files that the launcher downloads from Mojang, and it plays on ordinary multiplayer servers.</p>
+    <div class="grid">
+      <div class="card"><h3>HUD and PvP tools</h3><p>Movable HUD mods such as FPS, CPS, armour, potions, keystrokes and combat hitboxes, plus visual PvP settings.</p></div>
+      <div class="card"><h3>Cosmetics</h3><p>Capes, wings, hats, pets, shields and effects. Other Axoli players see your cosmetics; vanilla players don't.</p></div>
+      <div class="card"><h3>Friends</h3><p>A friends list with online status and friend requests between Axoli players.</p></div>
+      <div class="card"><h3>Server integration</h3><p>Partner servers on the Sidero network can show extra HUD info and server cosmetics to Axoli players.</p></div>
+    </div>
+    <p class="note">Axoli is a free, independent project. It is not affiliated with or endorsed by Mojang Studios or Microsoft. It does not sell or unlock Minecraft: every player needs their own copy of Minecraft: Java Edition.</p>
+  </section>
+
+  <section id="launcher">
+    <h2>The Axoli Launcher</h2>
+    <p>The Axoli Launcher is a Windows desktop app. It plays the same role as the official Minecraft Launcher, with Axoli built in:</p>
+    <ul>
+      <li><strong>Play:</strong> downloads Minecraft, the Java runtime it needs, Fabric, Fabric API and Axoli from their official sources, then starts the game.</li>
+      <li><strong>Profiles:</strong> each profile is a separate install with its own version, mods, worlds and settings.</li>
+      <li><strong>Mods:</strong> search Modrinth and install mods with one click, or add your own.</li>
+      <li><strong>Skins and capes:</strong> keep a skin library and switch your Minecraft skin and cape through Mojang's official skin API.</li>
+      <li><strong>Cosmetics and friends:</strong> choose Axoli cosmetics and manage friends.</li>
+      <li><strong>Accounts:</strong> sign in with a Microsoft account that owns Minecraft: Java Edition.</li>
+    </ul>
+  </section>
+
+  <section id="sign-in">
+    <h2>How Microsoft sign-in works</h2>
+    <p>The launcher signs in the same way the official launcher does. It uses its own Microsoft (Azure) app registration, set up for personal Microsoft accounts, with the standard Xbox Live and Minecraft services. It requests only the <code>XboxLive.signin</code> and <code>offline_access</code> permissions.</p>
+    <ol class="flow">
+      <li>When you choose <em>Add account</em>, the launcher opens Microsoft's own sign-in page (<code>login.microsoftonline.com</code>) in a separate, sandboxed window with a fresh, empty browser session. You type your email and password <strong>only on Microsoft's page</strong>. The launcher never sees, handles or stores your password.</li>
+      <li>Sign-in uses the OAuth 2.0 authorization code flow with PKCE and a random <code>state</code> value. When Microsoft redirects back, the launcher reads the one-time code and closes the window.</li>
+      <li>The launcher exchanges that code with Microsoft for an access token and a refresh token.</li>
+      <li>The Microsoft token is exchanged with Xbox Live (<code>user.auth.xboxlive.com</code>), then XSTS (<code>xsts.auth.xboxlive.com</code>), and finally with Minecraft services (<code>api.minecraftservices.com</code>) for a Minecraft access token.</li>
+      <li>The launcher reads your Minecraft profile (username and UUID) to confirm that the account owns Minecraft: Java Edition, then starts the game with that token, like the official launcher.</li>
+    </ol>
+    <p>If the account has no Xbox profile, isn't allowed on Xbox Live, or doesn't own the game, the launcher shows a clear message and stops.</p>
+  </section>
+
+  <section id="data">
+    <h2>How logins are stored, and what data is kept</h2>
+    <h3>On your computer</h3>
+    <p>Accounts are saved in <code>%APPDATA%\.axoli-launcher\accounts.json</code> on your own PC. For each account it keeps:</p>
+    <div class="scroll">
+    <table>
+      <tr><th>Item</th><th>How it is stored</th></tr>
+      <tr><td>Microsoft refresh token</td><td>Encrypted with Windows' Data Protection API (DPAPI, through Electron <code>safeStorage</code>), so only your Windows user account can decrypt it.</td></tr>
+      <tr><td>Minecraft access token and its expiry time</td><td>Encrypted the same way. It is reused until shortly before it expires, then renewed silently with the refresh token.</td></tr>
+      <tr><td>Minecraft username, UUID and Xbox user ID</td><td>Stored so the launcher can show the account and start the game.</td></tr>
+    </table>
+    </div>
+    <p>Your password is never stored anywhere. Tokens are only ever sent to Microsoft, Xbox Live and Mojang. They are never sent to Axoli's own servers. You can remove an account in the launcher at any time, which deletes its saved tokens. You can also revoke the launcher's access from your Microsoft account's privacy settings.</p>
+
+    <h3>On the Axoli service</h3>
+    <p>Friends and cosmetics are provided by the Axoli service. To prove who you are, the launcher and the mod use Mojang's standard server-join check (the same check every Minecraft server uses). The service asks Mojang whether you joined and never receives your Microsoft or Minecraft tokens. The service keeps:</p>
+    <ul>
+      <li>your Minecraft username and UUID, and when you were last seen;</li>
+      <li>the cosmetics you picked, so other Axoli players can see them;</li>
+      <li>your friends, friend requests and team membership;</li>
+      <li>a location (server and position) only if you turn on location sharing, held in memory and shared only with your friends.</li>
+    </ul>
+    <p>Axoli does not sell data, show ads or use the data for anything other than these features. To have your data on the Axoli service deleted, contact us (below).</p>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <p>Axoli Client and the Axoli Launcher are made by ColinJM.</p>
+    <p>For questions, support, security reports or data deletion requests, join the Axoli Discord: <a href="https://discord.gg/XT8JF5yTmk" rel="noopener">discord.gg/XT8JF5yTmk</a></p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    Axoli Client &middot; Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.
+  </div>
+</footer>
+</body>
+</html>
