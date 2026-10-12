@@ -4,161 +4,586 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Axoli Client</title>
-<meta name="description" content="Axoli Client is a Minecraft: Java Edition PvP client (a Fabric mod) with its own desktop launcher. This page explains what it is, how Microsoft sign-in works, what is stored and how to get in touch.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d6337a'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='700' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<meta name="description" content="Axoli Client is a free Minecraft: Java Edition PvP client (a Fabric mod) with its own Windows launcher. Download the Axoli Launcher, see what it does, how Microsoft sign-in works and what data is kept.">
+<meta name="theme-color" content="#04101a">
+<meta property="og:title" content="Axoli Client">
+<meta property="og:description" content="The PvP client for Minecraft, made to feel smooth. Free, with its own launcher for Windows.">
+<meta property="og:image" content="assets/game-menu.jpg">
+<link rel="icon" href="assets/axolilogo-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
+  /* The launcher's ocean look: one sharp turning reef behind the whole page, a depth shade over it, glass
+     panels without frosted blur, and the launcher's pink as the one accent gradient. */
   :root {
-    --bg: #faf7fb; --surface: #ffffff; --text: #1d1a22; --muted: #5d5766; --line: #e7e1ec;
-    --accent: #d6337a; --accent-soft: #fbe6f0; --code: #f3eff6;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141118; --surface: #1d1922; --text: #f1edf5; --muted: #a79fb2; --line: #2e2836;
-      --accent: #ff6aa8; --accent-soft: #3a1d2c; --code: #26212c;
-    }
+    --bg: #04101a; --text: #e6f4fb; --soft: #bcd3e0; --muted: #87a5b8; --faint: #557385;
+    --line: rgba(150, 215, 255, 0.11); --line-2: rgba(150, 215, 255, 0.2);
+    --glass: linear-gradient(180deg, rgba(160, 225, 255, 0.055), rgba(160, 225, 255, 0.015)), rgba(6, 20, 31, 0.76);
+    --glass-strong: linear-gradient(180deg, rgba(160, 225, 255, 0.06), rgba(160, 225, 255, 0.02)), rgba(6, 19, 29, 0.9);
+    --accent: #fe9fa3; --accent-rgb: 254, 159, 163; --on-accent: #16121a;
+    --grad: linear-gradient(135deg, #fe9fa3 0%, #dd838a 100%);
+    --ease: cubic-bezier(.16, 1, .3, 1);
+    --font: 'Inter', 'Segoe UI', system-ui, sans-serif; --display: 'Outfit', 'Inter', 'Segoe UI', sans-serif;
+    --mono: 'Cascadia Code', Consolas, ui-monospace, monospace;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 15.5px/1.65 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; }
+  img { display: block; max-width: 100%; }
+  ::selection { background: rgba(var(--accent-rgb), 0.35); }
+
+  /* ------------------------------------------------------------------ the water */
+  /* a still of the reef first (a fixed layer, since fixed backgrounds break on phones), then the turning one */
+  .reef-still { position: fixed; inset: 0; z-index: -4; background: #04101a url(assets/reef.jpg) center / cover no-repeat; }
+  .reef { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3; opacity: 0; transition: opacity 0.9s; }
+  .reef.ready { opacity: 1; }
+  /* depth: lighter at the top so the reef reads behind the hero, darker as you scroll into the text */
+  .shade { position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    background: radial-gradient(120% 90% at 55% 35%, transparent 40%, rgba(2, 8, 14, 0.55) 100%),
+                linear-gradient(180deg, rgba(3, 12, 20, 0.3) 0%, rgba(3, 12, 20, 0.5) 45%, rgba(2, 8, 14, 0.82) 100%); }
+  .deep { position: fixed; inset: 0; z-index: -2; pointer-events: none; background: rgba(2, 9, 15, 0.5); opacity: 0; will-change: opacity; }
+  .rays { position: fixed; left: 0; right: 0; top: -12%; height: 90%; z-index: -2; pointer-events: none; mix-blend-mode: screen; opacity: 0.55;
+    -webkit-mask-image: linear-gradient(180deg, #000 20%, transparent 90%); mask-image: linear-gradient(180deg, #000 20%, transparent 90%); }
+  .rays i { position: absolute; top: 0; height: 100%; transform-origin: 50% 0; opacity: 0.6;
+    background: linear-gradient(180deg, rgba(170, 232, 255, 0.16), rgba(170, 232, 255, 0.04) 45%, transparent 82%);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 38%, #000 62%, transparent); mask-image: linear-gradient(90deg, transparent, #000 38%, #000 62%, transparent);
+    animation: ray-sway 19s ease-in-out infinite alternate, ray-breathe 8s ease-in-out infinite; }
+  .rays i:nth-child(1) { left: 22%; width: 9vw; --r: 14deg; animation-duration: 21s, 9s; }
+  .rays i:nth-child(2) { left: 40%; width: 5vw; --r: 9deg; animation-duration: 17s, 7s; animation-delay: -4s, -2s; }
+  .rays i:nth-child(3) { left: 55%; width: 13vw; --r: 4deg; animation-duration: 23s, 11s; animation-delay: -9s, -5s; }
+  .rays i:nth-child(4) { left: 70%; width: 6vw; --r: -4deg; animation-duration: 18s, 8s; animation-delay: -2s, -6s; }
+  .rays i:nth-child(5) { left: 84%; width: 10vw; --r: -10deg; animation-duration: 25s, 10s; animation-delay: -12s, -1s; }
+  @keyframes ray-sway { from { transform: rotate(calc(var(--r) - 2.5deg)); } to { transform: rotate(calc(var(--r) + 2.5deg)); } }
+  @keyframes ray-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
+  .bubbles { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+  .wrap { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+  /* ------------------------------------------------------------------ top bar */
+  /* solid-ish, no frosted blur: the reef moves behind it */
+  header { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid transparent; transition: background 0.3s, border-color 0.3s; }
+  header.scrolled { background: linear-gradient(180deg, rgba(4, 14, 22, 0.94), rgba(4, 14, 22, 0.82)); border-bottom-color: var(--line); }
+  header .wrap { display: flex; align-items: center; gap: 14px; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+  .brand img { width: 36px; height: 36px; border-radius: 9px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); }
+  .brand strong { font: 800 18px/1 var(--display); letter-spacing: 0.18em; }
+  nav { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+  nav a { text-decoration: none; color: var(--muted); font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 9px; transition: color 0.15s, background 0.15s; }
+  nav a:hover { color: var(--text); background: rgba(150, 215, 255, 0.07); }
+  nav .nav-dl { margin-left: 8px; color: var(--on-accent); background: var(--grad); box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+  nav .nav-dl:hover { color: var(--on-accent); background: var(--grad); box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+
+  /* ------------------------------------------------------------------ hero */
+  .hero { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 48px; align-items: center; padding: 72px 0 80px; min-height: calc(100vh - 68px); min-height: calc(100svh - 68px); }
+  .kicker { display: inline-flex; align-items: center; gap: 8px; font: 700 12px/1 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft);
+    padding: 7px 12px; border-radius: 999px; background: rgba(4, 15, 24, 0.6); border: 1px solid var(--line); }
+  .kicker i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.8); }
+  .title { display: flex; align-items: center; gap: 18px; margin: 22px 0 14px; }
+  .title img { width: 76px; height: 76px; border-radius: 18px; box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06); }
+  h1 { font: 800 clamp(40px, 6.2vw, 74px)/0.98 var(--display); letter-spacing: 0.04em; margin: 0; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); }
+  h1 span { display: block; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead { color: var(--soft); font-size: 18px; margin: 0 0 30px; max-width: 520px; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5); }
+
+  /* the download button, the launcher's Play button */
+  .dl { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 14px; height: 68px; padding: 0 28px 0 12px; border-radius: 16px; text-decoration: none;
+    color: var(--on-accent); background: var(--grad); box-shadow: 0 12px 34px rgba(var(--accent-rgb), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    transition: transform 0.15s, box-shadow 0.2s; }
+  .dl::after { content: ''; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%); transform: translateX(-120%); transition: transform 0.7s; }
+  .dl:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(var(--accent-rgb), 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+  .dl:hover::after { transform: translateX(120%); }
+  .dl:active { transform: translateY(0); }
+  .dl-icon { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; background: rgba(22, 18, 26, 0.12); }
+  .dl-icon svg { width: 24px; height: 24px; }
+  .dl strong { display: block; font: 800 22px/1.05 var(--display); letter-spacing: 0.12em; }
+  .dl small { display: block; font: 600 12.5px/1.3 var(--font); opacity: 0.75; margin-top: 3px; }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .btn-ghost { display: inline-flex; align-items: center; gap: 10px; height: 68px; padding: 0 22px; border-radius: 16px; text-decoration: none; font-weight: 700;
+    background: rgba(6, 20, 31, 0.7); border: 1px solid var(--line-2); transition: background 0.15s, border-color 0.15s, transform 0.15s; }
+  .btn-ghost:hover { background: rgba(14, 34, 50, 0.8); border-color: rgba(150, 215, 255, 0.32); transform: translateY(-2px); }
+  .btn-ghost svg { width: 22px; height: 22px; color: #8b9bff; }
+  .fine { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 18px; color: var(--muted); font-size: 13px; }
+  .fine span { display: inline-flex; align-items: center; gap: 6px; }
+  .fine svg { width: 14px; height: 14px; color: var(--soft); }
+
+  .shot { position: relative; border-radius: 18px; padding: 8px; background: var(--glass); border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 rgba(180, 235, 255, 0.06), 0 30px 80px rgba(0, 6, 12, 0.55); }
+  .shot img { border-radius: 12px; width: 100%; height: auto; }
+  .shot .cap { position: absolute; left: 22px; bottom: -14px; font: 700 11px/1 var(--font); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft);
+    padding: 7px 10px; border-radius: 8px; background: rgba(4, 14, 22, 0.94); border: 1px solid var(--line-2); }
+  .hero .shot { transform: perspective(1400px) rotateY(-7deg) rotateX(2deg); transition: transform 0.8s var(--ease); }
+  .hero .shot:hover { transform: perspective(1400px) rotateY(-2deg) rotateX(0deg); }
+
+  /* ------------------------------------------------------------------ sections */
+  section.wrap { padding-top: 72px; padding-bottom: 8px; }
+  .doc > :first-child { margin-top: 0; }
+  .doc > :last-child { margin-bottom: 0; }
+  .eyebrow { font: 700 12px/1 var(--font); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+  h2 { font: 800 clamp(28px, 3.6vw, 40px)/1.1 var(--display); margin: 12px 0 12px; letter-spacing: 0.01em; }
+  .sub { color: var(--soft); margin: 0; max-width: 640px; font-size: 16.5px; }
+  h3 { font: 700 17px/1.3 var(--display); margin: 0 0 6px; letter-spacing: 0.01em; }
+  .glass { background: var(--glass); border: 1px solid var(--line); border-radius: 18px; box-shadow: inset 0 1px 0 rgba(180, 235, 255, 0.06), 0 12px 32px rgba(0, 8, 16, 0.32); }
+
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+  .feature { padding: 22px; transition: transform 0.25s var(--ease), border-color 0.2s, box-shadow 0.25s; }
+  .feature:hover { transform: translateY(-4px); border-color: rgba(var(--accent-rgb), 0.38);
+    box-shadow: inset 0 1px 0 rgba(180, 235, 255, 0.08), 0 18px 44px rgba(0, 8, 16, 0.45), 0 0 0 1px rgba(var(--accent-rgb), 0.12), 0 10px 34px rgba(var(--accent-rgb), 0.12); }
+  .feature p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  .ico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 14px; color: var(--accent);
+    background: linear-gradient(160deg, rgba(var(--accent-rgb), 0.2), rgba(var(--accent-rgb), 0.05) 70%); box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.28); }
+  .ico svg { width: 21px; height: 21px; }
+
+  .split { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; }
+  .ticks { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 12px; }
+  .ticks li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; color: var(--soft); }
+  .ticks li::before { content: ''; width: 20px; height: 20px; margin-top: 3px; border-radius: 6px; background: rgba(var(--accent-rgb), 0.16) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-7' fill='none' stroke='%23fe9fa3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px no-repeat; }
+  .ticks strong { color: var(--text); }
+
+  /* get it: three steps and the download again */
+  .get { padding: 34px; display: grid; grid-template-columns: 1fr auto; gap: 28px 40px; align-items: center;
+    background: radial-gradient(80% 140% at 100% 0%, rgba(var(--accent-rgb), 0.12), transparent 60%), var(--glass-strong); }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 22px; grid-column: 1 / -1; }
+  .step { padding: 18px; border-radius: 14px; background: rgba(3, 13, 21, 0.55); border: 1px solid var(--line); }
+  .step b { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; margin-bottom: 10px; font: 800 14px var(--display);
+    color: var(--on-accent); background: var(--grad); }
+  .step p { margin: 0; color: var(--muted); font-size: 14px; }
+  .smart { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; padding: 14px 16px; border-radius: 14px; grid-column: 1 / -1;
+    background: rgba(251, 191, 36, 0.07); border: 1px solid rgba(251, 191, 36, 0.24); color: var(--soft); font-size: 14px; }
+  .smart svg { flex-shrink: 0; width: 20px; height: 20px; color: #fbbf24; margin-top: 1px; }
+  .smart strong { color: var(--text); }
+
+  /* the long reading parts: sign-in and privacy */
+  .doc { padding: 34px 38px; }
+  .doc p, .doc li { color: var(--soft); }
+  .doc h3 { margin-top: 26px; }
+  .doc ol, .doc ul { padding-left: 1.3em; }
+  .doc li { margin-bottom: 8px; }
+  .doc li::marker { color: var(--accent); font-weight: 700; }
+  .doc strong { color: var(--text); }
+  code { font-family: var(--mono); font-size: 0.86em; background: rgba(150, 215, 255, 0.08); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; word-break: break-word; color: #d6eef9; }
+  .table { overflow-x: auto; margin-top: 12px; border-radius: 14px; border: 1px solid var(--line); background: rgba(3, 13, 21, 0.5); }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 480px; }
+  th, td { text-align: left; vertical-align: top; padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--soft); }
+  tr:last-child td { border-bottom: 0; }
+  th { color: var(--muted); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(150, 215, 255, 0.04); }
+  .note { margin-top: 22px; padding: 14px 18px; border-radius: 14px; background: rgba(var(--accent-rgb), 0.07); border: 1px solid rgba(var(--accent-rgb), 0.22); color: var(--soft); font-size: 14.5px; }
+  .doc a, .note a { color: var(--accent); }
+
+  .contact { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px 32px;
+    background: radial-gradient(70% 160% at 0% 0%, rgba(88, 101, 242, 0.18), transparent 60%), var(--glass); }
+  .contact p { margin: 0; color: var(--soft); }
+
+  footer { margin-top: 30px; padding: 28px 0 44px; color: var(--faint); font-size: 13px; border-top: 1px solid var(--line); background: linear-gradient(180deg, transparent, rgba(2, 8, 14, 0.55)); }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; align-items: center; }
+  footer nav a { font-size: 13px; padding: 6px 8px; }
+
+  /* things rise in as they come into view, like the launcher's pages */
+  .rise { opacity: 0; transform: translateY(22px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
+  .rise.in { opacity: 1; transform: none; }
+  .no-js .rise { opacity: 1; transform: none; }
+
+  @media (max-width: 980px) {
+    .hero, .split { grid-template-columns: 1fr; gap: 40px; }
+    .hero { min-height: 0; padding: 48px 0 56px; }
+    .hero .shot { transform: none; }
+    .features { grid-template-columns: repeat(2, 1fr); }
+    .split .shot { order: 2; }
   }
-  a { color: var(--accent); }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
-  header { border-bottom: 1px solid var(--line); background: var(--surface); }
-  header .wrap { display: flex; align-items: center; gap: 14px; padding-top: 14px; padding-bottom: 14px; flex-wrap: wrap; }
-  header img { width: 40px; height: 40px; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
-  header strong { font-size: 1.15rem; }
-  nav { margin-left: auto; display: flex; gap: 16px; flex-wrap: wrap; font-size: .95rem; }
-  nav a { color: var(--muted); text-decoration: none; }
-  nav a:hover { color: var(--accent); }
-  .hero { padding: 56px 0 32px; }
-  .hero h1 { font-size: clamp(2rem, 6vw, 2.9rem); line-height: 1.15; margin: 0 0 14px; letter-spacing: -.02em; }
-  .hero p { font-size: 1.15rem; color: var(--muted); margin: 0; max-width: 640px; }
-  .tag { display: inline-block; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: .82rem;
-         padding: 3px 10px; border-radius: 999px; margin-bottom: 16px; }
-  section { padding: 28px 0; border-top: 1px solid var(--line); }
-  h2 { font-size: 1.45rem; margin: 0 0 12px; letter-spacing: -.01em; }
-  h3 { font-size: 1.05rem; margin: 22px 0 6px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 16px; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
-  .card h3 { margin-top: 0; }
-  .card p { margin: 0; color: var(--muted); font-size: .96rem; }
-  ol.flow { padding-left: 1.3em; }
-  ol.flow li { margin-bottom: 8px; }
-  code { background: var(--code); padding: 1px 6px; border-radius: 5px; font-size: .9em; word-break: break-word; }
-  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .95rem; }
-  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
-  th { color: var(--muted); font-weight: 600; }
-  .scroll { overflow-x: auto; }
-  .note { background: var(--accent-soft); border-radius: 10px; padding: 12px 16px; margin-top: 16px; }
-  footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: .9rem; }
+  @media (max-width: 720px) {
+    nav a:not(.keep) { display: none; }
+    .wrap { padding: 0 16px; }
+    header .wrap { height: 60px; }
+    .brand strong { font-size: 16px; }
+    .title img { width: 58px; height: 58px; border-radius: 14px; }
+    .lead { font-size: 16.5px; }
+    .features, .steps { grid-template-columns: 1fr; }
+    .dl { width: 100%; }
+    .btn-ghost { width: 100%; justify-content: center; height: 56px; }
+    .get, .doc { padding: 22px 18px; }
+    .get { grid-template-columns: 1fr; }
+    .contact { flex-direction: column; align-items: flex-start; padding: 22px 18px; }
+    section.wrap { padding-top: 52px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .rays i { animation: none; }
+    .rise { opacity: 1; transform: none; transition: none; }
+    .feature, .dl, .btn-ghost, .hero .shot { transition: none; }
+  }
 </style>
 </head>
-<body>
+<body class="no-js">
+<div class="reef-still" aria-hidden="true"></div>
+<canvas class="reef" aria-hidden="true"></canvas>
+<div class="shade" aria-hidden="true"></div>
+<div class="deep" aria-hidden="true"></div>
+<div class="rays" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<canvas class="bubbles" aria-hidden="true"></canvas>
+
 <header>
   <div class="wrap">
-    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d6337a'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='700' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" alt="Axoli logo">
-    <strong>Axoli Client</strong>
+    <a class="brand" href="#top">
+      <img src="assets/axolilogo-192.png" alt="" width="36" height="36">
+      <strong>AXOLI</strong>
+    </a>
     <nav>
-      <a href="#about">About</a>
+      <a href="#features">Features</a>
       <a href="#launcher">Launcher</a>
-      <a href="#sign-in">Sign-in</a>
-      <a href="#data">Data &amp; privacy</a>
-      <a href="#contact">Contact</a>
+      <a href="#data">Privacy</a>
       <a href="store/">Store</a>
+      <a class="keep" href="https://discord.gg/pU6fFNNepQ" rel="noopener">Discord</a>
+      <a class="nav-dl keep" href="#download">Download</a>
     </nav>
   </div>
 </header>
 
-<main class="wrap">
-  <div class="hero">
-    <span class="tag">Minecraft: Java Edition</span>
-    <h1>A PvP client and launcher for Minecraft: Java Edition</h1>
-    <p>Axoli Client is a Fabric mod with a performance and PvP focus, in the style of Lunar Client and Feather. The Axoli Launcher installs and starts it for players who own Minecraft: Java Edition.</p>
+<main id="top">
+  <div class="wrap hero">
+    <div class="rise">
+      <span class="kicker"><i></i>Minecraft: Java Edition 1.21.11</span>
+      <div class="title">
+        <img src="assets/axolilogo.png" alt="Axoli logo" width="76" height="76">
+        <h1>AXOLI<span>CLIENT</span></h1>
+      </div>
+      <p class="lead">The PvP client for Minecraft, made to feel smooth. A movable HUD, PvP tools, a minimap, replays and cosmetics, with its own launcher that sets it all up for you.</p>
+      <div class="cta">
+        <a class="dl" href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/AxoliLauncher-Setup.exe" rel="noopener">
+          <span class="dl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></span>
+          <span><strong>DOWNLOAD</strong><small>Axoli Launcher for Windows</small></span>
+        </a>
+        <a class="btn-ghost" href="https://discord.gg/pU6fFNNepQ" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.6 5.3A17 17 0 0 0 15.4 4l-.5 1.1a15.7 15.7 0 0 0-5.8 0L8.6 4a17 17 0 0 0-4.2 1.3C1.7 9.3 1 13.2 1.3 17.1a17 17 0 0 0 5.2 2.6l1.1-1.8c-.6-.2-1.2-.5-1.7-.9l.4-.3a12.2 12.2 0 0 0 11.4 0l.4.3c-.5.4-1.1.7-1.7.9l1.1 1.8a17 17 0 0 0 5.2-2.6c.4-4.5-.7-8.4-3.1-11.8zM8.7 14.7c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1zm6.6 0c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1z"/></svg>
+          Join the Discord
+        </a>
+      </div>
+      <div class="fine">
+        <span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5l7.5-1v7H3zM11.5 4.4L21 3v8.5h-9.5zM3 12.5h7.5v7L3 18.5zM11.5 12.5H21V21l-9.5-1.3z"/></svg>Windows 10 and 11</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 21V7"/><path d="M12 7H8a2.5 2.5 0 1 1 0-5c3 0 4 5 4 5zM12 7h4a2.5 2.5 0 1 0 0-5c-3 0-4 5-4 5z"/></svg>Free</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>Updates itself</span>
+      </div>
+    </div>
+    <div class="shot rise">
+      <img src="assets/game-menu.jpg" alt="The Axoli main menu in game, over a coral reef with axolotls" width="1600" height="900">
+      <span class="cap">The main menu, in game</span>
+    </div>
   </div>
 
-  <section id="about">
-    <h2>What Axoli Client is</h2>
-    <p>Axoli Client is a mod for the Fabric loader on Minecraft: Java Edition 1.21.11. It adds a configurable HUD, PvP quality-of-life features, themes and cosmetics. It runs on top of the normal, unmodified game files that the launcher downloads from Mojang, and it plays on ordinary multiplayer servers.</p>
-    <div class="grid">
-      <div class="card"><h3>HUD and PvP tools</h3><p>Movable HUD mods such as FPS, CPS, armour, potions, keystrokes and combat hitboxes, plus visual PvP settings.</p></div>
-      <div class="card"><h3>Cosmetics</h3><p>Capes, wings, hats, pets, shields and effects. Other Axoli players see your cosmetics; vanilla players don't.</p></div>
-      <div class="card"><h3>Friends</h3><p>A friends list with online status and friend requests between Axoli players.</p></div>
-      <div class="card"><h3>Server integration</h3><p>Partner servers on the Sidero network can show extra HUD info and server cosmetics to Axoli players.</p></div>
+  <section id="features" class="wrap">
+    <div class="rise">
+      <span class="eyebrow">What's inside</span>
+      <h2>Everything you'd add yourself, already there</h2>
+      <p class="sub">Axoli is a Fabric mod for Minecraft: Java Edition 1.21.11. It runs on the normal game files from Mojang and plays on ordinary multiplayer servers.</p>
     </div>
-    <p class="note">Axoli is a free, independent project. It is not affiliated with or endorsed by Mojang Studios or Microsoft. It does not sell or unlock Minecraft: every player needs their own copy of Minecraft: Java Edition.</p>
-  </section>
-
-  <section id="launcher">
-    <h2>The Axoli Launcher</h2>
-    <p>The Axoli Launcher is a Windows desktop app. It plays the same role as the official Minecraft Launcher, with Axoli built in:</p>
-    <ul>
-      <li><strong>Play:</strong> downloads Minecraft, the Java runtime it needs, Fabric, Fabric API and Axoli from their official sources, then starts the game.</li>
-      <li><strong>Profiles:</strong> each profile is a separate install with its own version, mods, worlds and settings.</li>
-      <li><strong>Mods:</strong> search Modrinth and install mods with one click, or add your own.</li>
-      <li><strong>Skins and capes:</strong> keep a skin library and switch your Minecraft skin and cape through Mojang's official skin API.</li>
-      <li><strong>Cosmetics and friends:</strong> choose Axoli cosmetics and manage friends.</li>
-      <li><strong>Accounts:</strong> sign in with a Microsoft account that owns Minecraft: Java Edition.</li>
-    </ul>
-  </section>
-
-  <section id="sign-in">
-    <h2>How Microsoft sign-in works</h2>
-    <p>The launcher signs in the same way the official launcher does. It uses its own Microsoft (Azure) app registration, set up for personal Microsoft accounts, with the standard Xbox Live and Minecraft services. It requests only the <code>XboxLive.signin</code> and <code>offline_access</code> permissions.</p>
-    <ol class="flow">
-      <li>When you choose <em>Add account</em>, the launcher opens Microsoft's own sign-in page (<code>login.microsoftonline.com</code>) in a separate, sandboxed window with a fresh, empty browser session. You type your email and password <strong>only on Microsoft's page</strong>. The launcher never sees, handles or stores your password.</li>
-      <li>Sign-in uses the OAuth 2.0 authorization code flow with PKCE and a random <code>state</code> value. When Microsoft redirects back, the launcher reads the one-time code and closes the window.</li>
-      <li>The launcher exchanges that code with Microsoft for an access token and a refresh token.</li>
-      <li>The Microsoft token is exchanged with Xbox Live (<code>user.auth.xboxlive.com</code>), then XSTS (<code>xsts.auth.xboxlive.com</code>), and finally with Minecraft services (<code>api.minecraftservices.com</code>) for a Minecraft access token.</li>
-      <li>The launcher reads your Minecraft profile (username and UUID) to confirm that the account owns Minecraft: Java Edition, then starts the game with that token, like the official launcher.</li>
-    </ol>
-    <p>If the account has no Xbox profile, isn't allowed on Xbox Live, or doesn't own the game, the launcher shows a clear message and stops.</p>
-  </section>
-
-  <section id="data">
-    <h2>How logins are stored, and what data is kept</h2>
-    <h3>On your computer</h3>
-    <p>Accounts are saved in <code>%APPDATA%\.axoli-launcher\accounts.json</code> on your own PC. For each account it keeps:</p>
-    <div class="scroll">
-    <table>
-      <tr><th>Item</th><th>How it is stored</th></tr>
-      <tr><td>Microsoft refresh token</td><td>Encrypted with Windows' Data Protection API (DPAPI, through Electron <code>safeStorage</code>), so only your Windows user account can decrypt it.</td></tr>
-      <tr><td>Minecraft access token and its expiry time</td><td>Encrypted the same way. It is reused until shortly before it expires, then renewed silently with the refresh token.</td></tr>
-      <tr><td>Minecraft username, UUID and Xbox user ID</td><td>Stored so the launcher can show the account and start the game.</td></tr>
-    </table>
+    <div class="features">
+      <div class="glass feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h4M7 13h2M15 15h2"/></svg></div>
+        <h3>A HUD you place yourself</h3>
+        <p>FPS, CPS, armour, potions, keystrokes and more in one glass style. Drag them where you want; they snap to the edges and to each other.</p>
+      </div>
+      <div class="glass feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
+        <h3>PvP tools</h3>
+        <p>Combat hitboxes, a crosshair and swing cooldown bar you paint pixel by pixel, and a saturation outline traced from your own pack.</p>
+      </div>
+      <div class="glass feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <h3>More FPS</h3>
+        <p>Optimization mods like ImmediatelyFast, FerriteCore and ModernFix built in, mobs behind walls skipped, and borderless fullscreen on F11.</p>
+      </div>
+      <div class="glass feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg></div>
+        <h3>Minimap and world map</h3>
+        <p>Shaded hills, deep water and caves, waypoints with beacon beams, and a fair-play switch for servers that limit map mods.</p>
+      </div>
+      <div class="glass feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></div>
+        <h3>Replays and clips</h3>
+        <p>Watch a fight back from any angle, save clips of your best moments, and hide names and servers with streamer mode.</p>
+      </div>
+      <div class="glass feature rise">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></div>
+        <h3>Cosmetics and friends</h3>
+        <p>Capes, wings, hats, pets, shields and effects that other Axoli players see, plus a friends list with who's online.</p>
+      </div>
     </div>
-    <p>Your password is never stored anywhere. Tokens are only ever sent to Microsoft, Xbox Live and Mojang. They are never sent to Axoli's own servers. You can remove an account in the launcher at any time, which deletes its saved tokens. You can also revoke the launcher's access from your Microsoft account's privacy settings.</p>
-
-    <h3>On the Axoli service</h3>
-    <p>Friends and cosmetics are provided by the Axoli service. To prove who you are, the launcher and the mod use Mojang's standard server-join check (the same check every Minecraft server uses). The service asks Mojang whether you joined and never receives your Microsoft or Minecraft tokens. The service keeps:</p>
-    <ul>
-      <li>your Minecraft username and UUID, and when you were last seen;</li>
-      <li>the cosmetics you picked, so other Axoli players can see them;</li>
-      <li>your friends, friend requests and team membership;</li>
-      <li>a location (server and position) only if you turn on location sharing, held in memory and shared only with your friends.</li>
-      <li>the cosmetics you own, your Axoli coin balance and a log of coin changes (packs bought, cosmetics bought, refunds), and, if you link it, your Discord account's ID and name;</li>
-      <li>profiles you share as a code, for 30 days or until you delete the code.</li>
-    </ul>
-    <p>The game and launcher reach the service over an encrypted connection (<code>https://api.axoliclient.com</code>). That address runs through Cloudflare, which protects it from attacks and, like any network in between, sees your IP address and the time of each request. Your IP address is only used, in memory, to limit how fast one address can send requests. It is not stored (the one exception: a forged payment notification sent to the service is logged with the address it came from).</p>
-
-    <h3>Buying Axoli coins</h3>
-    <p>Coin packs are sold by Tebex, which is the merchant of record: Tebex handles the payment, your payment details, receipts, taxes, refunds and chargebacks under its own privacy policy. Axoli never sees your card or PayPal details. Axoli only receives your Minecraft username and UUID and which pack you bought, so it can add the coins to your account. Your IP address is passed to Tebex when you open a checkout from the game or launcher, for its fraud checks.</p>
-
-    <p>Axoli does not sell data, show ads or use the data for anything other than these features. To have your data on the Axoli service deleted, contact us (below).</p>
   </section>
 
-  <section id="contact">
-    <h2>Contact</h2>
-    <p>Axoli Client and the Axoli Launcher are made by ColinJM.</p>
-    <p>For questions, support, security reports or data deletion requests, join the Axoli Client Discord: <a href="https://discord.gg/pU6fFNNepQ" rel="noopener">discord.gg/pU6fFNNepQ</a></p>
+  <section id="launcher" class="wrap">
+    <div class="split">
+      <div class="shot rise">
+        <img src="assets/launcher-home.jpg" alt="The Axoli Launcher's Home page, with the Play button over a coral reef" width="1290" height="780" loading="lazy">
+        <span class="cap">The Axoli Launcher</span>
+      </div>
+      <div class="rise">
+        <span class="eyebrow">The launcher</span>
+        <h2>One click from desktop to game</h2>
+        <p class="sub">The Axoli Launcher is a Windows app that does what the official Minecraft Launcher does, with Axoli built in.</p>
+        <ul class="ticks">
+          <li><span><strong>Play.</strong> Downloads Minecraft, the Java it needs, Fabric, Fabric API and Axoli from their official sources, then starts the game.</span></li>
+          <li><span><strong>Profiles.</strong> Each one is its own install with its own version, mods, worlds and settings. Bring one over from Lunar, Feather, Prism and more, or share yours with a code.</span></li>
+          <li><span><strong>Mods.</strong> Search Modrinth and install mods with one click, or add your own.</span></li>
+          <li><span><strong>Skins and cosmetics.</strong> Keep a skin library, switch your cape, and try cosmetics on a 3D player.</span></li>
+          <li><span><strong>Updates itself.</strong> When a new version is out, it downloads and installs it with one click.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="download" class="wrap">
+    <div class="glass get rise">
+      <div>
+        <span class="eyebrow">Get Axoli</span>
+        <h2>Download the launcher</h2>
+        <p class="sub">Free for anyone who owns Minecraft: Java Edition. Windows 10 and 11 only for now.</p>
+      </div>
+      <a class="dl" href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/AxoliLauncher-Setup.exe" rel="noopener">
+        <span class="dl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></span>
+        <span><strong>DOWNLOAD</strong><small>AxoliLauncher-Setup.exe</small></span>
+      </a>
+      <div class="steps">
+        <div class="step"><b>1</b><h3>Run the installer</h3><p>Open AxoliLauncher-Setup.exe. It installs in a few seconds and starts the launcher.</p></div>
+        <div class="step"><b>2</b><h3>Sign in with Microsoft</h3><p>Use the Microsoft account that owns Minecraft: Java Edition, on Microsoft's own sign-in page.</p></div>
+        <div class="step"><b>3</b><h3>Press Play</h3><p>The launcher downloads the game and Axoli the first time, then you're in.</p></div>
+      </div>
+      <div class="smart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>
+        <span><strong>Windows may warn you once.</strong> The installer isn't code-signed yet, so Windows SmartScreen can show "Windows protected your PC" the first time. Choose <strong>More info</strong>, then <strong>Run anyway</strong>. Updates after that install without it.</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="sign-in" class="wrap">
+    <div class="rise">
+      <span class="eyebrow">Your account</span>
+      <h2>How Microsoft sign-in works</h2>
+    </div>
+    <div class="glass doc rise">
+      <p>The launcher signs in the same way the official launcher does. It uses its own Microsoft (Azure) app registration, set up for personal Microsoft accounts, with the standard Xbox Live and Minecraft services. It requests only the <code>XboxLive.signin</code> and <code>offline_access</code> permissions.</p>
+      <ol>
+        <li>When you choose <em>Add account</em>, the launcher opens Microsoft's own sign-in page (<code>login.microsoftonline.com</code>) in a separate, sandboxed window with a fresh, empty browser session. You type your email and password <strong>only on Microsoft's page</strong>. The launcher never sees, handles or stores your password.</li>
+        <li>Sign-in uses the OAuth 2.0 authorization code flow with PKCE and a random <code>state</code> value. When Microsoft redirects back, the launcher reads the one-time code and closes the window.</li>
+        <li>The launcher exchanges that code with Microsoft for an access token and a refresh token.</li>
+        <li>The Microsoft token is exchanged with Xbox Live (<code>user.auth.xboxlive.com</code>), then XSTS (<code>xsts.auth.xboxlive.com</code>), and finally with Minecraft services (<code>api.minecraftservices.com</code>) for a Minecraft access token.</li>
+        <li>The launcher reads your Minecraft profile (username and UUID) to confirm that the account owns Minecraft: Java Edition, then starts the game with that token, like the official launcher.</li>
+      </ol>
+      <p>If the account has no Xbox profile, isn't allowed on Xbox Live, or doesn't own the game, the launcher shows a clear message and stops.</p>
+    </div>
+  </section>
+
+  <section id="data" class="wrap">
+    <div class="rise">
+      <span class="eyebrow">Privacy</span>
+      <h2>How logins are stored, and what data is kept</h2>
+    </div>
+    <div class="glass doc rise">
+      <h3 style="margin-top:0">On your computer</h3>
+      <p>Accounts are saved in <code>%APPDATA%\.axoli-launcher\accounts.json</code> on your own PC. For each account it keeps:</p>
+      <div class="table">
+      <table>
+        <tr><th>Item</th><th>How it is stored</th></tr>
+        <tr><td>Microsoft refresh token</td><td>Encrypted with Windows' Data Protection API (DPAPI, through Electron <code>safeStorage</code>), so only your Windows user account can decrypt it.</td></tr>
+        <tr><td>Minecraft access token and its expiry time</td><td>Encrypted the same way. It is reused until shortly before it expires, then renewed silently with the refresh token.</td></tr>
+        <tr><td>Minecraft username, UUID and Xbox user ID</td><td>Stored so the launcher can show the account and start the game.</td></tr>
+      </table>
+      </div>
+      <p>Your password is never stored anywhere. Tokens are only ever sent to Microsoft, Xbox Live and Mojang. They are never sent to Axoli's own servers. You can remove an account in the launcher at any time, which deletes its saved tokens. You can also revoke the launcher's access from your Microsoft account's privacy settings.</p>
+
+      <h3>On the Axoli service</h3>
+      <p>Friends and cosmetics are provided by the Axoli service. To prove who you are, the launcher and the mod use Mojang's standard server-join check (the same check every Minecraft server uses). The service asks Mojang whether you joined and never receives your Microsoft or Minecraft tokens. The service keeps:</p>
+      <ul>
+        <li>your Minecraft username and UUID, and when you were last seen;</li>
+        <li>the cosmetics you picked, so other Axoli players can see them;</li>
+        <li>your friends, friend requests and team membership;</li>
+        <li>a location (server and position) only if you turn on location sharing, held in memory and shared only with your friends.</li>
+        <li>the cosmetics you own, your Axoli coin balance and a log of coin changes (packs bought, cosmetics bought, refunds), and, if you link it, your Discord account's ID and name;</li>
+        <li>profiles you share as a code, for 30 days or until you delete the code.</li>
+      </ul>
+      <p>The game and launcher reach the service over an encrypted connection (<code>https://api.axoliclient.com</code>). That address runs through Cloudflare, which protects it from attacks and, like any network in between, sees your IP address and the time of each request. Your IP address is only used, in memory, to limit how fast one address can send requests. It is not stored (the one exception: a forged payment notification sent to the service is logged with the address it came from).</p>
+
+      <h3>Buying Axoli coins</h3>
+      <p>Coin packs are sold by Tebex, which is the merchant of record: Tebex handles the payment, your payment details, receipts, taxes, refunds and chargebacks under its own privacy policy. Axoli never sees your card or PayPal details. Axoli only receives your Minecraft username and UUID and which pack you bought, so it can add the coins to your account. Your IP address is passed to Tebex when you open a checkout from the game or launcher, for its fraud checks.</p>
+
+      <p>Axoli does not sell data, show ads or use the data for anything other than these features. To have your data on the Axoli service deleted, contact us (below).</p>
+      <p class="note">Axoli is a free, independent project. It is not affiliated with or endorsed by Mojang Studios or Microsoft. It does not sell or unlock Minecraft: every player needs their own copy of Minecraft: Java Edition.</p>
+    </div>
+  </section>
+
+  <section id="contact" class="wrap">
+    <div class="glass contact rise">
+      <div>
+        <h3>Questions, support or a data request?</h3>
+        <p>Axoli Client and the Axoli Launcher are made by ColinJM. For questions, support, security reports or data deletion requests, join the Axoli Client Discord.</p>
+      </div>
+      <a class="btn-ghost" href="https://discord.gg/pU6fFNNepQ" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.6 5.3A17 17 0 0 0 15.4 4l-.5 1.1a15.7 15.7 0 0 0-5.8 0L8.6 4a17 17 0 0 0-4.2 1.3C1.7 9.3 1 13.2 1.3 17.1a17 17 0 0 0 5.2 2.6l1.1-1.8c-.6-.2-1.2-.5-1.7-.9l.4-.3a12.2 12.2 0 0 0 11.4 0l.4.3c-.5.4-1.1.7-1.7.9l1.1 1.8a17 17 0 0 0 5.2-2.6c.4-4.5-.7-8.4-3.1-11.8zM8.7 14.7c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1zm6.6 0c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1z"/></svg>
+        discord.gg/pU6fFNNepQ
+      </a>
+    </div>
   </section>
 </main>
 
 <footer>
   <div class="wrap">
-    Axoli Client &middot; Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.
+    <span>Axoli Client · Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</span>
+    <nav>
+      <a href="#download">Download</a>
+      <a href="#data">Privacy</a>
+      <a href="store/">Store</a>
+      <a href="https://discord.gg/pU6fFNNepQ" rel="noopener">Discord</a>
+    </nav>
   </div>
 </footer>
+
+<script>
+document.body.classList.remove('no-js');
+
+// ------------------------------------------------------------------ the top bar fills in once you scroll, the water deepens
+(function () {
+  const header = document.querySelector('header'), deep = document.querySelector('.deep');
+  let queued = false;
+  const update = () => {
+    queued = false;
+    const y = scrollY;
+    header.classList.toggle('scrolled', y > 8);
+    deep.style.opacity = Math.min(1, y / (innerHeight * 1.2)).toFixed(3);
+  };
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
+  update();
+})();
+
+// ------------------------------------------------------------------ rise into view
+(function () {
+  const els = document.querySelectorAll('.rise');
+  if (!('IntersectionObserver' in window)) { els.forEach((e) => e.classList.add('in')); return; }
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }, { rootMargin: '0px 0px -8% 0px' });
+  // siblings in a grid follow one another
+  els.forEach((e) => {
+    const sibs = e.parentElement ? [...e.parentElement.children].filter((c) => c.classList.contains('rise')) : [];
+    const i = sibs.indexOf(e);
+    if (i > 0) e.style.transitionDelay = Math.min(i, 6) * 0.07 + 's';
+    io.observe(e);
+  });
+})();
+
+// ------------------------------------------------------------------ the reef (the launcher's ReefPanorama)
+(function reef() {
+  const c = document.querySelector('.reef');
+  const gl = c.getContext('webgl', { antialias: false, alpha: false, depth: false, powerPreference: 'low-power' });
+  if (!gl) return;
+  const VERT = 'attribute vec2 aPos; varying vec2 vPos; void main() { vPos = aPos; gl_Position = vec4(aPos, 0.0, 1.0); }';
+  const FRAG = `precision mediump float;
+    varying vec2 vPos;
+    uniform float uYaw, uPitch, uTan, uAspect;
+    uniform sampler2D f0, f1, f2, f3, f4, f5;
+    vec3 dirFor(vec2 p) {
+      vec3 d = normalize(vec3(p.x * uTan * uAspect, p.y * uTan, 1.0));
+      float cp = cos(uPitch), sp = sin(uPitch);
+      d = vec3(d.x, d.y * cp - d.z * sp, d.y * sp + d.z * cp);
+      float cy = cos(uYaw), sy = sin(uYaw);
+      return vec3(d.x * cy + d.z * sy, d.y, -d.x * sy + d.z * cy);
+    }
+    vec3 sky(vec3 d) {
+      vec3 a = abs(d);
+      if (a.z >= a.x && a.z >= a.y) {
+        vec2 st = vec2(d.x / a.z * 0.5 + 0.5, 0.5 - d.y / a.z * 0.5);
+        return d.z > 0.0 ? texture2D(f0, st).rgb : texture2D(f2, vec2(1.0 - st.x, st.y)).rgb;
+      } else if (a.x >= a.y) {
+        vec2 st = vec2(-d.z / d.x * 0.5 + 0.5, 0.5 - d.y / a.x * 0.5);
+        return d.x > 0.0 ? texture2D(f1, st).rgb : texture2D(f3, st).rgb;
+      } else if (d.y > 0.0) {
+        return texture2D(f4, vec2(d.x / a.y * 0.5 + 0.5, d.z / a.y * 0.5 + 0.5)).rgb;
+      }
+      return texture2D(f5, vec2(d.x / a.y * 0.5 + 0.5, 0.5 - d.z / a.y * 0.5)).rgb;
+    }
+    void main() { gl_FragColor = vec4(sky(dirFor(vPos)), 1.0); }`;
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FRAG));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+  gl.useProgram(prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog, 'aPos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+  const u = (n) => gl.getUniformLocation(prog, n);
+  gl.uniform1f(u('uPitch'), 6 * Math.PI / 180);
+  gl.uniform1f(u('uTan'), Math.tan(64 * Math.PI / 360));
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let raf = 0;
+  const frame = () => {
+    raf = still ? 0 : requestAnimationFrame(frame);
+    const dpr = Math.min(devicePixelRatio || 1, 1.5);
+    const w = Math.max(2, Math.round(c.clientWidth * dpr)), h = Math.max(2, Math.round(c.clientHeight * dpr));
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; gl.viewport(0, 0, w, h); }
+    // tall phone screens get a wider view so the reef isn't a narrow slice
+    const aspect = w / h;
+    gl.uniform1f(u('uTan'), Math.tan((aspect < 1 ? 80 : 64) * Math.PI / 360));
+    gl.uniform1f(u('uAspect'), aspect);
+    gl.uniform1f(u('uYaw'), ((Date.now() / 1000 * 2) % 360) * Math.PI / 180);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  };
+  Promise.all([0, 1, 2, 3, 4, 5].map((i) => new Promise((ok, fail) => {
+    const img = new Image();
+    img.onload = () => ok(img);
+    img.onerror = fail;
+    img.src = `assets/pano_${i}.jpg`;
+  }))).then((imgs) => {
+    imgs.forEach((img, i) => {
+      gl.activeTexture(gl.TEXTURE0 + i);
+      gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+      gl.uniform1i(u('f' + i), i);
+    });
+    const start = () => { if (!raf && !document.hidden) raf = requestAnimationFrame(frame); };
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else start(); });
+    frame();
+    c.classList.add('ready');
+    start();
+  }).catch(() => {});
+})();
+
+// ------------------------------------------------------------------ bubbles, like the launcher's backdrop
+(function bubbles() {
+  const c = document.querySelector('.bubbles');
+  const ctx = c.getContext('2d');
+  if (!ctx || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const list = Array.from({ length: 28 }, () => ({ x: Math.random(), y: Math.random(), r: 1.5 + Math.random() * 3.5, s: 0.012 + Math.random() * 0.025, w: Math.random() * 6 }));
+  let last = performance.now();
+  const tick = (now) => {
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    if (c.width !== Math.round(innerWidth * dpr) || c.height !== Math.round(innerHeight * dpr)) { c.width = Math.round(innerWidth * dpr); c.height = Math.round(innerHeight * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of list) {
+      b.y -= b.s * dt * 3;
+      if (b.y < -0.05) { b.y = 1.05; b.x = Math.random(); }
+      const x = b.x * innerWidth + Math.sin(now / 900 + b.w) * 6, y = b.y * innerHeight;
+      ctx.beginPath();
+      ctx.arc(x, y, b.r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(210, 245, 255, 0.35)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.fillRect(x - b.r * 0.4, y - b.r * 0.5, Math.max(1, b.r * 0.35), Math.max(1, b.r * 0.35));
+    }
+    if (!document.hidden) requestAnimationFrame(tick); else document.addEventListener('visibilitychange', () => { last = performance.now(); requestAnimationFrame(tick); }, { once: true });
+  };
+  requestAnimationFrame(tick);
+})();
+</script>
 </body>
 </html>
