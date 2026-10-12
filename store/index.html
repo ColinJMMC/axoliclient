@@ -111,6 +111,7 @@
   .notice.show { display: flex; }
   .notice.ok { background: linear-gradient(90deg, rgba(74, 222, 128, 0.14), rgba(74, 222, 128, 0.03)), rgba(6, 20, 31, 0.86); border-color: rgba(74, 222, 128, 0.45); }
   .notice.err { background: linear-gradient(90deg, rgba(248, 113, 113, 0.14), rgba(248, 113, 113, 0.03)), rgba(6, 20, 31, 0.86); border-color: rgba(248, 113, 113, 0.45); }
+  .notice.soon { background: linear-gradient(90deg, rgba(var(--gold), 0.16), rgba(var(--gold), 0.03)), rgba(6, 20, 31, 0.86); border-color: rgba(var(--gold), 0.5); }
   .notice strong { display: block; }
   .notice span { color: var(--muted); font-size: 14px; }
 
@@ -176,6 +177,12 @@
       <span>Your coins show up in the Axoli client and launcher within a couple of minutes. Open Cosmetics to spend them.</span>
     </div>
   </div>
+  <div class="notice soon" id="soon" role="status">
+    <div>
+      <strong>The store opens soon</strong>
+      <span>Coin packs can't be bought yet. Join the <a href="https://discord.gg/pU6fFNNepQ" rel="noopener">Axoli Discord</a> to hear the moment it opens.</span>
+    </div>
+  </div>
   <div class="notice err" id="error" role="alert">
     <div>
       <strong id="errorTitle">That didn't work</strong>
@@ -219,8 +226,9 @@
 <script>
 // ------------------------------------------------------------------ the store
 // The Tebex store's public token (Tebex > Integrations > Webstore: "Public token"). It's made to be used in
-// browsers; it only lists packages and makes baskets. Without it the Buy buttons stay off.
-const TEBEX_PUBLIC_TOKEN = '14w51-c3910cb6a26a9abd2390e72301e6de14cbcbd2e6';
+// browsers; it only lists packages and makes baskets. Without it the page shows "opens soon" and the Buy
+// buttons stay off. Empty until Tebex approves the store (2026-10-12).
+const TEBEX_PUBLIC_TOKEN = '';
 const HEADLESS = 'https://headless.tebex.io/api';
 
 // The coin packs (Tebex package ids from axoli-shop.json). Live prices replace these once the token is set.
@@ -249,10 +257,10 @@ function render() {
         <button class="buy" type="button"></button>
       </div>`;
     const btn = el.querySelector('.buy');
-    btn.innerHTML = busy === p.id ? '<span class="spin"></span>Opening checkout' : `Buy <span class="price">${p.price}</span>`;
+    btn.innerHTML = !TEBEX_PUBLIC_TOKEN ? `Opens soon · <span class="price">${p.price}</span>`
+      : busy === p.id ? '<span class="spin"></span>Opening checkout' : `Buy <span class="price">${p.price}</span>`;
     btn.disabled = !TEBEX_PUBLIC_TOKEN || (busy !== null && busy !== p.id);
-    if (!TEBEX_PUBLIC_TOKEN) btn.title = 'The store opens soon';
-    btn.addEventListener('click', () => buy(p));
+    if (TEBEX_PUBLIC_TOKEN) btn.addEventListener('click', () => buy(p));
     $('packs').append(el);
   }
 }
@@ -283,6 +291,7 @@ function isTebexCheckout(url) {
 }
 
 async function buy(p) {
+  if (!TEBEX_PUBLIC_TOKEN) return;
   $('error').classList.remove('show');
   const name = nameInput.value.trim();
   if (!NAME.test(name)) {
@@ -353,7 +362,7 @@ nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventD
 try { nameInput.value = new URLSearchParams(location.search).get('name') || localStorage.getItem('axoli-store-name') || ''; } catch {}
 head();
 if (new URLSearchParams(location.search).has('paid')) $('paid').classList.add('show');
-if (!TEBEX_PUBLIC_TOKEN) showError('The store opens soon', 'Coin packs can be bought here as soon as the Axoli store is live.');
+if (!TEBEX_PUBLIC_TOKEN) $('soon').classList.add('show');
 render();
 prices();
 
