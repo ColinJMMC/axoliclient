@@ -274,6 +274,14 @@ async function api(path, body) {
   return json;
 }
 
+// buyers are only ever sent to Tebex's own https checkout
+function isTebexCheckout(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' && !u.username && !u.password && !u.port && (u.hostname === 'tebex.io' || u.hostname.endsWith('.tebex.io'));
+  } catch { return false; }
+}
+
 async function buy(p) {
   $('error').classList.remove('show');
   const name = nameInput.value.trim();
@@ -303,7 +311,7 @@ async function buy(p) {
       }
     }
     const url = filled?.links?.checkout;
-    if (!url) throw new Error('Tebex gave no checkout link');
+    if (!isTebexCheckout(url)) throw new Error('Tebex gave no checkout link');
     location.href = url;
   } catch (e) {
     busy = null;
