@@ -218,7 +218,7 @@
 
 <footer>
   <div class="wrap">
-    <span>Payments are handled by Tebex, the merchant of record. Prices include tax where it applies.</span>
+    <span>Payments are handled by Tebex, the merchant of record. Prices are before VAT; Tebex adds it for your country at checkout.</span>
     <span>Axoli Client · Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</span>
   </div>
 </footer>
@@ -227,8 +227,8 @@
 // ------------------------------------------------------------------ the store
 // The Tebex store's public token (Tebex > Integrations > Webstore: "Public token"). It's made to be used in
 // browsers; it only lists packages and makes baskets. Without it the page shows "opens soon" and the Buy
-// buttons stay off. Empty until Tebex approves the store (2026-10-12).
-const TEBEX_PUBLIC_TOKEN = '';
+// buttons stay off.
+const TEBEX_PUBLIC_TOKEN = '14w51-c3910cb6a26a9abd2390e72301e6de14cbcbd2e6';
 const HEADLESS = 'https://headless.tebex.io/api';
 
 // The coin packs (Tebex package ids from axoli-shop.json). Live prices replace these once the token is set.
@@ -339,7 +339,8 @@ async function prices() {
     for (const p of PACKS) {
       const live = list.find((x) => Number(x.id) === p.id);
       if (live) {
-        const amount = Number(live.total_price ?? live.base_price);
+        // before VAT, like the game and launcher (Tebex adds the buyer's VAT at checkout)
+        const amount = Number(live.base_price ?? live.total_price);
         if (Number.isFinite(amount)) p.price = new Intl.NumberFormat('en-IE', { style: 'currency', currency: live.currency || 'EUR' }).format(amount);
       }
     }
@@ -359,7 +360,8 @@ function head() {
 }
 nameInput.addEventListener('input', head);
 nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
-try { nameInput.value = new URLSearchParams(location.search).get('name') || localStorage.getItem('axoli-store-name') || ''; } catch {}
+// never from the link: a shared link with someone else's name would send the buyer's coins to them
+try { nameInput.value = localStorage.getItem('axoli-store-name') || ''; } catch {}
 head();
 if (new URLSearchParams(location.search).has('paid')) $('paid').classList.add('show');
 if (!TEBEX_PUBLIC_TOKEN) $('soon').classList.add('show');
