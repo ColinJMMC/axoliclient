@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Axoli Client</title>
-<meta name="description" content="Axoli Client is a free Minecraft: Java Edition PvP client (a Fabric mod) with its own Windows launcher. Download the Axoli Launcher, see what it does, how Microsoft sign-in works and what data is kept.">
+<meta name="description" content="Axoli Client is a free Minecraft: Java Edition PvP client (a Fabric mod) with its own Windows launcher. Download the Axoli Launcher or just the mod file, see what it does, how Microsoft sign-in works and what data is kept.">
 <meta name="theme-color" content="#04101a">
 <meta property="og:title" content="Axoli Client">
 <meta property="og:description" content="The PvP client for Minecraft, made to feel smooth. Free, with its own launcher for Windows.">
@@ -34,6 +34,7 @@
   body { background: var(--bg); color: var(--text); font: 15.5px/1.65 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   a { color: inherit; }
   img { display: block; max-width: 100%; }
+  [hidden] { display: none !important; }
   ::selection { background: rgba(var(--accent-rgb), 0.35); }
 
   /* ------------------------------------------------------------------ the water */
@@ -154,6 +155,56 @@
     background: rgba(251, 191, 36, 0.07); border: 1px solid rgba(251, 191, 36, 0.24); color: var(--soft); font-size: 14px; }
   .smart svg { flex-shrink: 0; width: 20px; height: 20px; color: #fbbf24; margin-top: 1px; }
   .smart strong { color: var(--text); }
+  .get > div > h3, .solo > h3 { font-size: clamp(22px, 2.6vw, 28px); margin: 10px 0 8px; }
+  .dl-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .os-more { margin: 0; color: var(--muted); font-size: 13px; text-align: center; }
+  .os-more a { color: var(--soft); font-weight: 600; margin-left: 8px; }
+  .os-more a:hover { color: var(--accent); }
+  .tag { display: inline-flex; align-items: center; gap: 7px; font: 700 11px/1 var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
+    padding: 6px 10px; border-radius: 999px; background: rgba(var(--accent-rgb), 0.1); border: 1px solid rgba(var(--accent-rgb), 0.26); }
+  .tag.cool { color: #8fd8ff; background: rgba(120, 205, 255, 0.08); border-color: rgba(120, 205, 255, 0.24); }
+
+  /* the download counter: launcher and standalone together, from GitHub's own counts */
+  .count { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 20px 0 0; padding: 10px 16px; border-radius: 14px;
+    background: rgba(4, 15, 24, 0.6); border: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+  .count b { font: 800 24px/1 var(--display); letter-spacing: 0.02em; color: var(--text); font-variant-numeric: tabular-nums; }
+  .count .split-n { color: var(--faint); font-size: 13px; }
+  .count .split-n i { font-style: normal; color: var(--soft); font-variant-numeric: tabular-nums; }
+  .fine .n { color: var(--soft); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .alt { display: inline-block; margin-top: 14px; color: var(--soft); font-size: 14px; text-decoration: none; border-bottom: 1px dashed rgba(188, 211, 224, 0.4); padding-bottom: 1px; }
+  .alt:hover { color: var(--text); border-bottom-color: var(--accent); }
+  .get, .solo { margin-top: 18px; }
+
+  /* standalone: just the mod file, one card per Minecraft version */
+  .solo { padding: 34px; background: radial-gradient(80% 140% at 0% 0%, rgba(120, 205, 255, 0.09), transparent 60%), var(--glass-strong); }
+  .solo > p { color: var(--soft); margin: 0; max-width: 700px; }
+  .vers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+  .ver { display: flex; flex-direction: column; gap: 4px; padding: 18px; border-radius: 14px; background: rgba(3, 13, 21, 0.55); border: 1px solid var(--line);
+    transition: border-color 0.2s, transform 0.25s var(--ease); }
+  .ver:hover { border-color: rgba(var(--accent-rgb), 0.38); transform: translateY(-3px); }
+  .ver-mc { font: 800 26px/1.1 var(--display); letter-spacing: 0.02em; }
+  .ver-meta { color: var(--muted); font-size: 13px; }
+  .ver-dl { display: flex; align-items: center; gap: 10px; margin-top: 12px; height: 46px; padding: 0 16px 0 8px; border-radius: 12px; text-decoration: none;
+    color: var(--on-accent); background: var(--grad); font-weight: 700; font-size: 14px;
+    box-shadow: 0 8px 22px rgba(var(--accent-rgb), 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.35); transition: box-shadow 0.2s; }
+  .ver-dl:hover { box-shadow: 0 10px 28px rgba(var(--accent-rgb), 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+  .ver-dl span { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: rgba(22, 18, 26, 0.12); }
+  .ver-dl svg { width: 18px; height: 18px; }
+  .ver-dl small { margin-left: auto; font-weight: 600; font-size: 12px; opacity: 0.7; }
+  .ver-api { margin-top: 8px; color: var(--muted); font-size: 13px; text-decoration: none; }
+  .ver-api:hover { color: var(--accent); }
+  .ver-api code { font-size: 12px; }
+  .solo .steps { margin-top: 14px; }
+  .step a { color: var(--accent); }
+  .built { margin-top: 14px; padding: 16px 18px; border-radius: 14px; background: rgba(var(--accent-rgb), 0.06); border: 1px solid rgba(var(--accent-rgb), 0.2); color: var(--soft); font-size: 14px; }
+  .built strong { color: var(--text); }
+  .built ul { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+  .built li { padding: 4px 10px; border-radius: 8px; background: rgba(3, 13, 21, 0.6); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-weight: 600; }
+  .built p { margin: 10px 0 0; }
+  .solo-foot { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .solo-foot div { padding: 14px 16px; border-radius: 14px; background: rgba(3, 13, 21, 0.45); border: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+  .solo-foot strong { color: var(--text); }
+  .solo-foot a { color: var(--accent); }
 
   /* the long reading parts: sign-in and privacy */
   .doc { padding: 34px 38px; }
@@ -199,10 +250,10 @@
     .brand strong { font-size: 16px; }
     .title img { width: 58px; height: 58px; border-radius: 14px; }
     .lead { font-size: 16.5px; }
-    .features, .steps { grid-template-columns: 1fr; }
+    .features, .steps, .vers, .solo-foot { grid-template-columns: 1fr; }
     .dl { width: 100%; }
     .btn-ghost { width: 100%; justify-content: center; height: 56px; }
-    .get, .doc { padding: 22px 18px; }
+    .get, .doc, .solo { padding: 22px 18px; }
     .get { grid-template-columns: 1fr; }
     .contact { flex-direction: column; align-items: flex-start; padding: 22px 18px; }
     section.wrap { padding-top: 52px; }
@@ -211,7 +262,7 @@
     html { scroll-behavior: auto; }
     .rays i { animation: none; }
     .rise { opacity: 1; transform: none; transition: none; }
-    .feature, .dl, .btn-ghost, .hero .shot { transition: none; }
+    .feature, .dl, .btn-ghost, .hero .shot, .ver { transition: none; }
   }
 </style>
 </head>
@@ -243,14 +294,14 @@
 <main id="top">
   <div class="wrap hero">
     <div class="rise">
-      <span class="kicker"><i></i>Minecraft: Java Edition 1.21.11</span>
+      <span class="kicker"><i></i>Minecraft: Java Edition 26.3 · 1.21.11 · 1.21.4</span>
       <div class="title">
         <img src="assets/axolilogo.png" alt="Axoli logo" width="76" height="76">
         <h1>AXOLI<span>CLIENT</span></h1>
       </div>
       <p class="lead">The PvP client for Minecraft, made to feel smooth. A movable HUD, PvP tools, a minimap, replays and cosmetics, with its own launcher that sets it all up for you.</p>
       <div class="cta">
-        <a class="dl" href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/AxoliLauncher-Setup.exe" rel="noopener">
+        <a class="dl" href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/AxoliLauncher-Setup.exe" data-asset="AxoliLauncher-Setup.exe" data-main-dl="os" rel="noopener">
           <span class="dl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></span>
           <span><strong>DOWNLOAD</strong><small>Axoli Launcher for Windows</small></span>
         </a>
@@ -259,8 +310,10 @@
           Join the Discord
         </a>
       </div>
+      <a class="alt" href="#standalone">Using your own launcher? Download just the mod</a>
       <div class="fine">
-        <span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5l7.5-1v7H3zM11.5 4.4L21 3v8.5h-9.5zM3 12.5h7.5v7L3 18.5zM11.5 12.5H21V21l-9.5-1.3z"/></svg>Windows 10 and 11</span>
+        <span data-dl-inline hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg><span class="n" data-dl-total></span> downloads</span>
+        <span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5l7.5-1v7H3zM11.5 4.4L21 3v8.5h-9.5zM3 12.5h7.5v7L3 18.5zM11.5 12.5H21V21l-9.5-1.3z"/></svg><span data-os-list>Windows 10 and 11</span></span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 21V7"/><path d="M12 7H8a2.5 2.5 0 1 1 0-5c3 0 4 5 4 5zM12 7h4a2.5 2.5 0 1 0 0-5c-3 0-4 5-4 5z"/></svg>Free</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>Updates itself</span>
       </div>
@@ -275,7 +328,7 @@
     <div class="rise">
       <span class="eyebrow">What's inside</span>
       <h2>Everything you'd add yourself, already there</h2>
-      <p class="sub">Axoli is a Fabric mod for Minecraft: Java Edition 1.21.11. It runs on the normal game files from Mojang and plays on ordinary multiplayer servers.</p>
+      <p class="sub">Axoli is a Fabric mod for Minecraft: Java Edition 26.3, 1.21.11 and 1.21.4. It runs on the normal game files from Mojang and plays on ordinary multiplayer servers.</p>
     </div>
     <div class="features">
       <div class="glass feature rise">
@@ -333,24 +386,83 @@
   </section>
 
   <section id="download" class="wrap">
+    <div class="rise">
+      <span class="eyebrow">Get Axoli</span>
+      <h2>Two ways to play</h2>
+      <p class="sub">Free for anyone who owns Minecraft: Java Edition. The launcher sets everything up for you, or take just the mod file and use the launcher you already have.</p>
+      <p class="count" data-dl-count hidden><b data-dl-total></b> downloads <span class="split-n"><i data-dl-launcher></i> launcher · <i data-dl-solo></i> standalone</span></p>
+    </div>
     <div class="glass get rise">
       <div>
-        <span class="eyebrow">Get Axoli</span>
-        <h2>Download the launcher</h2>
-        <p class="sub">Free for anyone who owns Minecraft: Java Edition. Windows 10 and 11 only for now.</p>
+        <span class="tag">Recommended</span>
+        <h3>The Axoli Launcher</h3>
+        <p class="sub">An app that installs Minecraft, Fabric and Axoli for you and keeps them up to date. <span data-os-list>Windows 10 and 11</span><span data-win-only> only for now</span>.</p>
       </div>
-      <a class="dl" href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/AxoliLauncher-Setup.exe" rel="noopener">
-        <span class="dl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></span>
-        <span><strong>DOWNLOAD</strong><small>AxoliLauncher-Setup.exe</small></span>
-      </a>
+      <div class="dl-col">
+        <a class="dl" href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/AxoliLauncher-Setup.exe" data-asset="AxoliLauncher-Setup.exe" data-main-dl="file" rel="noopener">
+          <span class="dl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></span>
+          <span><strong>DOWNLOAD</strong><small>AxoliLauncher-Setup.exe</small></span>
+        </a>
+        <!-- shown once a release has the macOS or Linux launcher -->
+        <p class="os-more" data-os-more hidden>Also for<a href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/AxoliLauncher-Setup.exe" data-asset="AxoliLauncher-Setup.exe" data-os="windows" hidden>Windows</a><a href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/AxoliLauncher-mac.dmg" data-asset="AxoliLauncher-mac.dmg" data-os="mac" hidden>macOS</a><a href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/AxoliLauncher-linux.AppImage" data-asset="AxoliLauncher-linux.AppImage" data-os="linux" hidden>Linux</a></p>
+      </div>
       <div class="steps">
-        <div class="step"><b>1</b><h3>Run the installer</h3><p>Open AxoliLauncher-Setup.exe. It installs in a few seconds and starts the launcher.</p></div>
+        <div class="step"><b>1</b><h3>Run the installer</h3><p>Open the file you downloaded. It installs in a few seconds and starts the launcher.</p></div>
         <div class="step"><b>2</b><h3>Sign in with Microsoft</h3><p>Use the Microsoft account that owns Minecraft: Java Edition, on Microsoft's own sign-in page.</p></div>
         <div class="step"><b>3</b><h3>Press Play</h3><p>The launcher downloads the game and Axoli the first time, then you're in.</p></div>
       </div>
       <div class="smart">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>
         <span><strong>Windows may warn you once.</strong> The installer isn't code-signed yet, so Windows SmartScreen can show "Windows protected your PC" the first time. Choose <strong>More info</strong>, then <strong>Run anyway</strong>. Updates after that install without it.</span>
+      </div>
+    </div>
+
+    <div id="standalone" class="glass solo rise">
+      <span class="tag cool">Standalone</span>
+      <h3>Just the mod</h3>
+      <p>Keep your own launcher: the official Minecraft Launcher, Prism, Modrinth App, MultiMC or any other that runs Fabric. Download the Axoli file for your Minecraft version and put it in your mods folder. It's the same file the Axoli Launcher installs.</p>
+      <div class="vers">
+        <div class="ver">
+          <span class="ver-mc">26.3</span>
+          <span class="ver-meta">Newest · Java 25</span>
+          <a class="ver-dl" href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/Axoli-Client-26.3.jar" data-asset="Axoli-Client-26.3.jar" rel="noopener">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></span>
+            Download <small>.jar</small>
+          </a>
+          <a class="ver-api" href="https://modrinth.com/mod/fabric-api/versions?g=26.3&amp;l=fabric" rel="noopener">Needs Fabric API for 26.3 &rarr;</a>
+        </div>
+        <div class="ver">
+          <span class="ver-mc">1.21.11</span>
+          <span class="ver-meta">Java 21</span>
+          <a class="ver-dl" href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/Axoli-Client-1.21.11.jar" data-asset="Axoli-Client-1.21.11.jar" rel="noopener">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></span>
+            Download <small>.jar</small>
+          </a>
+          <a class="ver-api" href="https://modrinth.com/mod/fabric-api/versions?g=1.21.11&amp;l=fabric" rel="noopener">Needs Fabric API for 1.21.11 &rarr;</a>
+        </div>
+        <div class="ver">
+          <span class="ver-mc">1.21.4</span>
+          <span class="ver-meta">Java 21</span>
+          <a class="ver-dl" href="https://github.com/ColinJMMC/axoliclient/releases/latest/download/Axoli-Client-1.21.4.jar" data-asset="Axoli-Client-1.21.4.jar" rel="noopener">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></span>
+            Download <small>.jar</small>
+          </a>
+          <a class="ver-api" href="https://modrinth.com/mod/fabric-api/versions?g=1.21.4&amp;l=fabric" rel="noopener">Needs Fabric API for 1.21.4 &rarr;</a>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step"><b>1</b><h3>Install Fabric</h3><p>Install Fabric Loader 0.19.5 or newer for the same Minecraft version, with the <a href="https://fabricmc.net/use/installer/" rel="noopener">Fabric installer</a> or your launcher's own Fabric option.</p></div>
+        <div class="step"><b>2</b><h3>Add Fabric API</h3><p>Download the newest <a href="https://modrinth.com/mod/fabric-api" rel="noopener">Fabric API</a> for that version and put it in your mods folder.</p></div>
+        <div class="step"><b>3</b><h3>Add Axoli and play</h3><p>Put the Axoli file in the same mods folder (<code>.minecraft\mods</code> for the official launcher) and start the Fabric profile.</p></div>
+      </div>
+      <div class="built">
+        <strong>The optimization mods come built in.</strong> These are packed inside the Axoli file, together with the small libraries they need themselves (Cloth Config and MixinExtras), so there's nothing extra to download for them:
+        <ul><li>ImmediatelyFast</li><li>FerriteCore</li><li>ModernFix</li><li>Krypton</li><li>MoreCulling</li><li>BadOptimizations</li></ul>
+        <p>Already have some of these in your mods folder? That's fine: Fabric loads only the newest copy of each. Sodium isn't included; add it yourself if you want it.</p>
+      </div>
+      <div class="solo-foot">
+        <div><strong>Updates are up to you.</strong> The mod file doesn't update itself. When a new version is out (we post it in the <a href="https://discord.gg/pU6fFNNepQ" rel="noopener">Discord</a>), download it again and replace the old file; it keeps the same name.</div>
+        <div><strong>Same game, fewer extras.</strong> Everything in game is the same. Profiles, the mod browser, the skin library and one-click updates are part of the Axoli Launcher.</div>
       </div>
     </div>
   </section>
@@ -468,6 +580,78 @@ document.body.classList.remove('no-js');
     if (i > 0) e.style.transitionDelay = Math.min(i, 6) * 0.07 + 's';
     io.observe(e);
   });
+})();
+
+// ------------------------------------------------------------------ downloads: the launcher installer and the standalone mod files together,
+// summed over every release from GitHub's own counts (kept 10 minutes per visitor: GitHub allows 60 calls an hour without a token)
+(function downloads() {
+  const REPO = 'ColinJMMC/axoliclient', KEY = 'axoli-downloads-1', FRESH = 10 * 60 * 1000;
+  const LAUNCHERS = { windows: 'AxoliLauncher-Setup.exe', mac: 'AxoliLauncher-mac.dmg', linux: 'AxoliLauncher-linux.AppImage' };
+  const OS_NAMES = { windows: 'Windows', mac: 'macOS', linux: 'Linux' };
+  const launcher = (name) => Object.values(LAUNCHERS).includes(name);
+  const solo = (name) => /^Axoli-Client-.+\.jar$/.test(name);
+  const fmt = new Intl.NumberFormat('en-US');
+  const set = (sel, n) => document.querySelectorAll(sel).forEach((e) => { e.textContent = fmt.format(n); });
+  const visitor = /Mac/.test(navigator.platform) ? 'mac' : /Linux/.test(navigator.platform) && !/Android/.test(navigator.userAgent) ? 'linux' : 'windows';
+  // the launcher for each system that a release has, the macOS and Linux ones once they ship
+  const platforms = (d) => {
+    const have = Object.keys(LAUNCHERS).filter((os) => d.files[LAUNCHERS[os]]);
+    if (have.length < 2) return;
+    const names = have.map((os) => OS_NAMES[os]);
+    document.querySelectorAll('[data-os-list]').forEach((e) => { e.textContent = names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]; });
+    document.querySelectorAll('[data-win-only]').forEach((e) => { e.hidden = true; });
+    const main = have.includes(visitor) ? visitor : 'windows';
+    document.querySelectorAll('[data-main-dl]').forEach((a) => {
+      a.href = d.files[LAUNCHERS[main]];
+      a.querySelector('small').textContent = a.dataset.mainDl === 'os' ? 'Axoli Launcher for ' + OS_NAMES[main] : LAUNCHERS[main];
+    });
+    document.querySelectorAll('[data-os]').forEach((a) => { a.hidden = a.dataset.os === main || !have.includes(a.dataset.os); });
+    document.querySelectorAll('[data-os-more]').forEach((e) => { e.hidden = false; });
+  };
+  let shown = false;
+  const show = (d) => {
+    const total = d.launcher + d.solo;
+    if (!total) return;
+    // every button goes to the newest release that has its file
+    document.querySelectorAll('[data-asset]').forEach((a) => { if (d.files[a.dataset.asset]) a.href = d.files[a.dataset.asset]; });
+    platforms(d);
+    set('[data-dl-launcher]', d.launcher);
+    set('[data-dl-solo]', d.solo);
+    document.querySelectorAll('[data-dl-count], [data-dl-inline]').forEach((e) => { e.hidden = false; });
+    if (shown || matchMedia('(prefers-reduced-motion: reduce)').matches) return set('[data-dl-total]', total);
+    shown = true;
+    const t0 = performance.now();
+    const tick = (now) => {
+      const k = Math.min(1, (now - t0) / 1100);
+      set('[data-dl-total]', Math.round(total * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  if (cached && cached.files) show(cached);
+  if (cached && Date.now() - cached.at < FRESH) return;
+  (async () => {
+    const d = { launcher: 0, solo: 0, files: {}, at: Date.now() };
+    for (let page = 1; page <= 10; page++) {
+      const res = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=100&page=${page}`, { headers: { Accept: 'application/vnd.github+json' } });
+      if (!res.ok) return;
+      const list = await res.json();
+      for (const rel of list) {
+        if (rel.draft) continue;
+        for (const a of rel.assets || []) {
+          const isLauncher = launcher(a.name);
+          if (!isLauncher && !solo(a.name)) continue;
+          d[isLauncher ? 'launcher' : 'solo'] += a.download_count;
+          if (!rel.prerelease && !d.files[a.name]) d.files[a.name] = a.browser_download_url;
+        }
+      }
+      if (list.length < 100) break;
+    }
+    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {}
+    show(d);
+  })().catch(() => {});
 })();
 
 // ------------------------------------------------------------------ the reef (the launcher's ReefPanorama)
